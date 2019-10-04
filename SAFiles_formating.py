@@ -70,7 +70,7 @@ for file in glob.glob(path19):
     hum['Humidity'] = pd.to_numeric(hum.Humidity, errors='coerce')
     hum.insert(loc=2, column='Blank', value='')  
     hum['Blank'] = np.where(hum['Humidity'].isnull(),'m','')                       # missing mark
-    hum['Humidity'] = dpt.iloc[:,1].fillna(((hum.Humidity.shift() + hum.Humidity.shift(-1))/2))
+    hum['Humidity'] = hum.iloc[:,1].fillna(((hum.Humidity.shift() + hum.Humidity.shift(-1))/2))
     
     
 #    stp = pd.DataFrame([df.Date, df.Humidity]).transpose()                 #needs station pressure but all we have is altP or SeaP May also need conversion
