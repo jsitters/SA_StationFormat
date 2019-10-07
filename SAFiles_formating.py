@@ -8,9 +8,6 @@ This is a temporary script file.
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import os
 from datetime import datetime
 import glob
   
@@ -41,11 +38,11 @@ for file in glob.glob(path19):
     win['Windspeed'] = pd.to_numeric(win.Windspeed, errors='coerce')
     win.Windspeed*=0.868976
     win['Windspeed'] = win.iloc[:,1].fillna(0)    
-    for q in range(len(win.Date)-1): 
-        if win.Date[q] == win.Date[q+1]:#.duplicated():
-            win.iloc[q,1] = ((win.iloc[q,1] + win.iloc[q+1,1])/2)
-            win = win.drop_duplicates(subset=['Date'], keep='first')                      
-    win.to_csv(path  + file_name + '_uo' + '.win', sep=',', header=False, index=False)
+#    for q in range(len(win.Date)-1): 
+#        if win.Date[q+1] == win.Date[q]:#.duplicated():
+#            win.iloc[q,1] = ((win.iloc[q,1] + win.iloc[q+1,1])/2)
+#        win = win.drop_duplicates(subset=['Date'], keep='first')                      
+#    win.to_csv(path  + file_name + '_uo' + '.win', sep=',', header=False, index=False)
     
     thisdict={'CLR':0, 'OVC':10, 'BKN':7.5, 'FEW':1.25, 'SCT':4.38, 'VV':10 }  #converts sky cover to MetAdapt format
     sky = df['Cloud'].str[-10:]     #df['Cloud'] = 
@@ -90,26 +87,28 @@ for file in glob.glob(path19):
     pre = pd.DataFrame([df.Date, df.Precip]).transpose()
     pre['Precip'] = pd.to_numeric(pre.Precip, errors='coerce')
     pre.insert(loc=2, column='Blank', value='') 
-    pre['Blank'] = np.where(pre['Precip'].isnull(),'m','')                        #missing mark
-    pre['Precip'] = pre.iloc[:,1].fillna(((pre.Precip.shift() + pre.Precip.shift(-1))/2))
-    
-    names=['dpt', 'hum', 'tmp', 'tsk', 'pre']
+    pre['Blank'] = np.where(pre['Precip'].isnull(),'m','')                  #missing mark
+    pre['Precip'] = pre.iloc[:,1].fillna(0)#filll missing with zero then calculate average of before and after
+
+    for q in range(len(pre.Date)-1):
+        if pre['Blank'][q] == 'm':
+            pre.iloc[q,1] = ((pre.iloc[q,1]+pre.iloc[q+1,1])/2)                       
+    #pre['Precip'] = pre.iloc[:,1].fillna(((pre.Precip.shift() + pre.Precip.shift(-1))/2))
+#    
+    names=['pre']#'win','dpt', 'hum', 'tmp', 'tsk', 'pre']
     ct=0
-    j=[dpt, hum, tmp, tsk, pre]
+    j=[pre]#win, dpt, hum, tmp, tsk, pre]
     for i in j:
         for q in range(len(i.Date)-1): 
             if i.Date[q] == i.Date[q+1]:#.duplicated():
                 i.iloc[q,1] = ((i.iloc[q,1]+i.iloc[q+1,1])/2)
             #if i.Blank == 'm':
-                #i.Blank.iloc[q]=='M'
+                #i.Blank.iloc[q+1]=='M' #what if there are several missing in a row?
                 
         i = i.drop_duplicates(subset=['Date'], keep='first')
         i.to_csv(path  + file_name + '_uo.' + names[ct], sep=',', header=False, index=False)
         ct+=1    
     
-    
-##need to start at 00 min and average if there are more than one sampling in an hour    
-
 
 
 
